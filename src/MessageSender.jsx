@@ -3,25 +3,64 @@ import { InsertEmoticon, PhotoLibrary, Videocam } from "@material-ui/icons";
 import React, { useState } from "react";
 import "./MessageSender.css";
 import { useStateValue } from "./StateProvider";
-import db from "./firebase";
+import db, { storage } from "./firebase";
 import firebase from "firebase";
 
 function MessageSender() {
   const [input, setInput] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [image, setImage] = useState(null);
   const [{ user }, dispatch] = useStateValue();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    db.collection("posts").add({
-      message: input,
-      imageUrl: imageUrl,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      username: user.displayName,
-      profilePic: user.photoURL,
-    });
+    if (input) {
+      if (image) {
+        const uploadTask = storage.ref(`images/${image.name}`).put(image);
+
+        uploadTask.on(
+          "state_changed",
+          () => {
+            return;
+          },
+          (err) => {
+            alert(err.message);
+          },
+          () => {
+            storage
+              .ref(`images`)
+              .child(image.name)
+              .getDownloadURL()
+              .then((url) => {
+                db.collection("posts").add({
+                  message: input,
+                  imageUrl: url,
+                  timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                  username: user.displayName,
+                  profilePic: user.photoURL,
+                });
+              });
+          }
+        );
+      } else {
+        db.collection("posts").add({
+          message: input,
+          imageUrl: null,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          username: user.displayName,
+          profilePic: user.photoURL,
+        });
+      }
+    } else {
+      alert("Invalid Post");
+    }
     setInput("");
-    setImageUrl("");
+    setImage(null);
+  };
+
+  const imageSetter = (e) => {
+    if (e.target.files[0]) {
+      setImage(e.target.files[0]);
+    }
   };
 
   return (
@@ -36,11 +75,17 @@ function MessageSender() {
             onChange={(e) => setInput(e.target.value)}
           />
           <input
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="image URL (Optional)"
+            type="file"
+            accept="image/*"
+            onChange={imageSetter}
+            id="imageInput"
+            hidden
           />
-          <button type="submit">Hidden button</button>
+          <label htmlFor="imageInput">
+            <PhotoLibrary style={{ color: "green" }} />
+            <span>{image ? `${image.name}` : "Add Image"}</span>
+          </label>
+          <button type="submit">Post</button>
         </form>
       </div>
       <div className="messageSender-bottom">
