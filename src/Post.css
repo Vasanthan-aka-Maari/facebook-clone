@@ -50,3 +50,36 @@
 .post-option:hover {
   color: #2d81f4;
 }
+.comment-box {
+  display: flex;
+  align-items: center;
+  margin: 0 5px;
+  margin-bottom: 5px;
+}
+.comment-box input {
+  flex: 1;
+  border-radius: 999px 0 0 999px;
+  border: 1px solid #dfdfdf;
+  padding: 7px;
+  font-size: 1rem;
+  outline: none;
+}
+.comment-box input:focus {
+  border: 1px solid #2d81f4;
+}
+.comment-button {
+  flex: 0;
+  border-radius: 0 999px 999px 0 !important;
+}
+.comment {
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+}
+.comment p {
+  font-weight: 200;
+}
+.comment strong {
+  margin-right: 10px;
+  color: rgb(61, 60, 60);
+}
